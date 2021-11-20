@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Bezier curves</title>
+</head>
+<body>
+    <style>
+        textarea {
+            display: block;
+            width: 500px;
+            height: 300px;
+        }
+    </style>
+    <canvas id="canvas" style="border-style: solid;display: block;" width="1500" height="800"></canvas>
+    <br>
+    <button id="newSpline">New Spline</button>
+    <button id="movePoints">Move points</button>
+    <br>
+    <div id="options"></div>
+    <script type="module">
+        import { Draw } from './Draw.js';
+
+        let splines = [];
+        splines.push(new Draw());
+        let opti = 1;
+        let movePoint = false;
+        let mouseIsDown = false;
+        let pointX, pointY;
+        let splineMove, bezierMove, vecMove;
+        
+
+        var div = document.createElement("div");
+        div.id = opti;
+        div.innerHTML = "Spline " + splines.length + " ";;
+        var button = document.createElement("Input");
+        button.type = "Color";
+        var textForButton = document.createTextNode("Change color");
+        button.appendChild(textForButton);
+        button.addEventListener("change", function(){
+            splines[div.id - 1].color = button.value;
+            console.log(button.value);
+            splines[div.id - 1].drawBlank();
+            for(let i = 0; i < splines.length; i++){
+            splines[i].drawBezier();
+            }
+        });
+        div.appendChild(button);
+        var del = document.createElement("Button");
+        var textForButton = document.createTextNode("Delete spline");
+        del.appendChild(textForButton);
+        del.addEventListener("click", function(){
+            if(!(parseInt(div.id) == parseInt(opti))){
+                document.getElementById(div.id).remove();
+                splines[div.id - 1] = new Draw();
+                splines[div.id - 1].drawBlank();
+                for(let i = 0; i < splines.length; i++){
+                splines[i].drawBezier();
+            }
+        }
+        });
+        div.appendChild(del);
+        document.getElementById("options").appendChild(div);
+
+        const canvas = document.querySelector('#canvas');
+        const rect = canvas.getBoundingClientRect();
+        canvas.addEventListener('mousedown', function(e) {
+            if(movePoint){
+                mouseIsDown = true;
+                pointX = event.clientX - rect.left;
+                pointY = event.clientY - rect.top;
+                let bre = false;
+                for(let i = 0; i < splines.length; i++){
+                    for(let j = 0; j < splines[i].spl.n; j++){
+                        for(let k = 0; k < 4; k++){
+                            if(Math.abs(splines[i].spl.curves[j].points[k].vec[0] - pointX) <= 5 && Math.abs(splines[i].spl.curves[j].points[k].vec[1] - pointY)){
+                                pointX = splines[i].spl.curves[j].points[k].vec[0];
+                                pointY = splines[i].spl.curves[j].points[k].vec[1];
+                                splineMove = i; 
+                                bezierMove = j;
+                                vecMove = k;
+                                bre = true;
+                                break;
+                            }
+                        }
+                        if(bre){
+                            break;
+                        }
+                    }
+                    if(bre){
+                        break;
+                    }
+                }
+            }
+            else{
+                splines[splines.length - 1].getCursorPositionDown(canvas, e)
+            }    
+        });
+
+        canvas.addEventListener('mouseup', function(e) {
+            if(!movePoint){
+                splines[splines.length - 1].getCursorPositionUp(canvas, e)
+                for(let i = 0; i < splines.length; i++){
+                    splines[i].drawBezier();
+                }
+            }
+            else{
+                mouseIsDown = false;
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if(mouseIsDown){
+                splines[splineMove].spl.curves[bezierMove].points[vecMove].vec[0] = event.clientX - rect.left;
+                splines[splineMove].spl.curves[bezierMove].points[vecMove].vec[1] = event.clientY - rect.top;
+                splines[splineMove].spl.makeContinuous();
+                splines[splineMove].spl.makeSmooth();
+                splines[splineMove].drawBlank();
+                for(let i = 0; i < splines.length; i++){
+                    splines[i].drawBezier();
+                }
+            } 
+        });
+
+        document.querySelector('#newSpline').addEventListener('click', function(e){
+        splines.push(new Draw());
+        opti++;
+        var div = document.createElement("div");
+        div.id = opti;
+        div.innerHTML = "Spline " + splines.length + " ";
+        var button = document.createElement("Input");
+        button.type = "Color";
+        var textForButton = document.createTextNode("Change color");
+        button.appendChild(textForButton);
+        button.addEventListener("change", function(){
+            splines[div.id - 1].color = button.value;
+            console.log(button.value);
+            splines[div.id - 1].drawBlank();
+            for(let i = 0; i < splines.length; i++){
+            splines[i].drawBezier();
+            }
+        });
+        div.appendChild(button);
+        var del = document.createElement("Button");
+        var textForButton = document.createTextNode("Delete spline");
+        del.appendChild(textForButton);
+        del.addEventListener("click", function(){
+            if(!(parseInt(div.id) == parseInt(opti))){
+                document.getElementById(div.id).remove();
+                splines[div.id - 1] = new Draw();
+                splines[div.id - 1].drawBlank();
+                for(let i = 0; i < splines.length; i++){
+                splines[i].drawBezier();
+            }
+        }
+        });
+        div.appendChild(del);
+        document.getElementById("options").appendChild(div);
+        });
+
+        document.querySelector('#movePoints').addEventListener('click', function(e){
+            movePoint = !movePoint;
+            console.log(movePoint)
+        });
+    </script>
+</body>
+</html>
