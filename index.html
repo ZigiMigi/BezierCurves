@@ -26,6 +26,7 @@
         let opti = 1;
         let movePoint = false;
         let mouseIsDown = false;
+        let pointFound = false;
         let pointX, pointY;
         let splineMove, bezierMove, vecMove;
         
@@ -64,9 +65,11 @@
 
         const canvas = document.querySelector('#canvas');
         const rect = canvas.getBoundingClientRect();
+        canvas.style.cursor = "pointer";
         canvas.addEventListener('mousedown', function(e) {
             if(movePoint){
                 mouseIsDown = true;
+                canvas.style.cursor = "grabbing";
                 pointX = event.clientX - rect.left;
                 pointY = event.clientY - rect.top;
                 let bre = false;
@@ -80,6 +83,7 @@
                                 bezierMove = j;
                                 vecMove = k;
                                 bre = true;
+                                pointFound = true;
                                 break;
                             }
                         }
@@ -93,7 +97,8 @@
                 }
             }
             else{
-                splines[splines.length - 1].getCursorPositionDown(canvas, e)
+                splines[splines.length - 1].getCursorPositionDown(canvas, e);
+                canvas.style.cursor = "crosshair";
             }    
         });
 
@@ -103,14 +108,17 @@
                 for(let i = 0; i < splines.length; i++){
                     splines[i].drawBezier();
                 }
+                canvas.style.cursor = "pointer";
             }
             else{
                 mouseIsDown = false;
+                pointFound = false;
+                canvas.style.cursor = "grab";
             }
         });
 
         canvas.addEventListener('mousemove', function(e) {
-            if(mouseIsDown){
+            if(mouseIsDown && pointFound){
                 splines[splineMove].spl.curves[bezierMove].points[vecMove].vec[0] = event.clientX - rect.left;
                 splines[splineMove].spl.curves[bezierMove].points[vecMove].vec[1] = event.clientY - rect.top;
                 splines[splineMove].spl.makeContinuous();
@@ -160,7 +168,12 @@
 
         document.querySelector('#movePoints').addEventListener('click', function(e){
             movePoint = !movePoint;
-            console.log(movePoint)
+            if(movePoint){
+                canvas.style.cursor = "grab";
+            }
+            else{
+                canvas.style.cursor = "pointer";
+            }
         });
     </script>
 </body>
